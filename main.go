@@ -44,7 +44,7 @@ func main() {
 	exitChan := make(chan bool)
 
 	// Launch each of our flow ETLs
-	go flows.ExampleGauge(flowChan)
+	go flows.DailyAppLoads(flowChan)
 
 	// Launch our reader
 	go reader(flowChan)
