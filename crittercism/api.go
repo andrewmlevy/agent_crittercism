@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/jmoiron/jsonq"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"time"
