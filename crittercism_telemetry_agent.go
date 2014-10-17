@@ -46,6 +46,9 @@ func main() {
 
 	//519d53101386202089000007
 
+	// Launch our reader
+	go reader(flowChan)
+
 	// Launch each of our flow ETLs
 	go flows.DailyActiveUsers(flowChan, config)
 	go flows.DailyAppCrashes(flowChan, config)
@@ -55,9 +58,6 @@ func main() {
 	go flows.DailyCrashesByOs(flowChan, config)
 	go flows.MonthlyActiveUsers(flowChan, config)
 	go flows.ServiceMonitoringErrorRate(flowChan, config)
-
-	// Launch our reader
-	go reader(flowChan)
 
 	// Wait for an exit message
 	<-exitChan
