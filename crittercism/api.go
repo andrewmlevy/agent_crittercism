@@ -19,11 +19,11 @@ var accessTokenExpires time.Time
 
 // Request will make a request of the Crittercism API
 // This will return a github.com/jmoiron/jsonq JSON query object
-func Request(method string, path string, params string) (jq *jsonq.JsonQuery, err error) {
+func Request(method string, path string, params string, config map[string]string) (jq *jsonq.JsonQuery, err error) {
 
 	// Check for accessToken, getting a new one if needed
 	if accessToken == "" || time.Now().After(accessTokenExpires) {
-		if token, expires, err := getOAuthToken(); err == nil {
+		if token, expires, err := getOAuthToken(config); err == nil {
 			accessToken = token
 			accessTokenExpires = time.Now().Add(time.Duration(expires) * time.Second)
 		} else {
@@ -61,12 +61,9 @@ func Request(method string, path string, params string) (jq *jsonq.JsonQuery, er
 }
 
 // getOAuthToken fetches a new OAuth Token from the Crittercism API given a username and password
-func getOAuthToken() (token string, expires int, err error) {
+func getOAuthToken(config map[string]string) (token string, expires int, err error) {
 
-	// TODO - remove this once I get a password object
-	return "cg299DBJDbZfLJq621uFewRlzvwDjKZM", 0, nil
-
-	var params = ""
+	var params = fmt.Sprintf(`{"login": "%s", "password": "%s"}}`, config["login"], config["password"])
 
 	// Construct REST Request
 	url := fmt.Sprintf("%s/token", crittercismAPIURL)

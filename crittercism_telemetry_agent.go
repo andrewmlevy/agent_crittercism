@@ -42,9 +42,19 @@ func main() {
 	// Our channels for communication
 	flowChan := make(chan gotelemetry.Flow)
 	exitChan := make(chan bool)
+	var config map[string]string
+
+	//519d53101386202089000007
 
 	// Launch each of our flow ETLs
-	go flows.DailyAppLoads(flowChan)
+	go flows.DailyActiveUsers(flowChan, config)
+	go flows.DailyAppCrashes(flowChan, config)
+	go flows.DailyAppLoads(flowChan, config)
+	go flows.DailyAppLoadsByDevice(flowChan, config)
+	go flows.DailyCrashRate(flowChan, config)
+	go flows.DailyCrashesByOs(flowChan, config)
+	go flows.MonthlyActiveUsers(flowChan, config)
+	go flows.ServiceMonitoringErrorRate(flowChan, config)
 
 	// Launch our reader
 	go reader(flowChan)
