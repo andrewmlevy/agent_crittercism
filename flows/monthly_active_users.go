@@ -8,9 +8,9 @@ import (
 	"time"
 )
 
-// MonthylActiveUsers will query the Crittercism API and get the monthly active users
+// MonthlyActiveUsers will query the Crittercism API and get the monthly active users
 // It will then emit a Flow object to the flowChan for sending up to Telemetry
-func MonthylActiveUsers(flowChan chan gotelemetry.Flow, config map[string]string) {
+func MonthlyActiveUsers(flowChan chan gotelemetry.Flow, config map[string]string) {
 
 	const interval = 3600
 	const label = "Monthly Active Users"
