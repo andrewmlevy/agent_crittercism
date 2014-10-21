@@ -13,7 +13,7 @@ import (
 
 const crittercismAPIURL = "https://developers.crittercism.com:443/v1.0"
 
-var accessToken string = ""
+var accessToken string = "cg299DBJDbZfLJq621uFewRlzvwDjKZM"
 var refreshToken string = ""
 var accessTokenExpires time.Time
 
@@ -22,7 +22,7 @@ var accessTokenExpires time.Time
 func Request(method string, path string, params string, config map[string]string) (jq *jsonq.JsonQuery, err error) {
 
 	// Check for accessToken, getting a new one if needed
-	if accessToken == "" || time.Now().After(accessTokenExpires) {
+	if accessToken == "" { // || time.Now().After(accessTokenExpires) {
 		if token, expires, err := getOAuthToken(config); err == nil {
 			accessToken = token
 			accessTokenExpires = time.Now().Add(time.Duration(expires) * time.Second)

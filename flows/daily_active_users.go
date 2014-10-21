@@ -11,13 +11,15 @@ import (
 // It will then emit a Flow object to the flowChan for sending up to Telemetry
 func DailyActiveUsers(job *job.Job, f *gotelemetry.Flow) {
 
+	config = job.Config()
+
 	if data, err := f.ValueData(); err == nil {
 		// Build the Request of Crittercism
-		params := fmt.Sprintf(`{"params":{"graph": "dau", "duration": 1440, "appId": "%s"}}`, job.Config["appId"])
+		params := fmt.Sprintf(`{"params":{"graph": "dau", "duration": 1440, "appId": "%s"}}`, job.Config()["appId"])
 		path := "errorMonitoring/graph"
 
 		// Get the data from Crittercism
-		if jq, err := crittercism.Request("POST", path, params, job.Config); err == nil {
+		if jq, err := crittercism.Request("POST", path, params, job.Config()); err == nil {
 
 			if value, err := jq.Float("data", "series", "0", "points", "0"); err == nil {
 				data.Value = value

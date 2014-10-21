@@ -1,11 +1,11 @@
 accounts: 
-  - api_key: <your key>
+  - api_key: 086ab610a83b941968caea0e6cefd04e
     submission_interval: 60
     jobs:
       - id: Crittercism
         plugin: crittercism
         config:
-          appId: "appId"
+          appId: "519d53101386202089000007"
           username: "username"
           password: "password"
           board:
