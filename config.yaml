@@ -1,0 +1,13 @@
+accounts: 
+  - api_key: <your key>
+    submission_interval: 60
+    jobs:
+      - id: Crittercism
+        plugin: crittercism
+        config:
+          appId: "appId"
+          username: "username"
+          password: "password"
+          board:
+            name: Crittercism
+            prefix: crittercism
