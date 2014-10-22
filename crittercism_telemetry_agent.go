@@ -4,6 +4,8 @@ import (
 	"github.com/telemetryapp/gotelemetry_agent/agent/config"
 	"github.com/telemetryapp/gotelemetry_agent/agent/job"
 	"log"
+
+	_ "github.com/telemetryapp/agent_crittercism/crittercism"
 )
 
 func main() {

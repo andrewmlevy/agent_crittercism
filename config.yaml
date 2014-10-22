@@ -1,6 +1,7 @@
 accounts: 
-  - api_key: 086ab610a83b941968caea0e6cefd04e
-    submission_interval: 60
+  # - api_key: 086ab610a83b941968caea0e6cefd04e
+  - api_key: f67f1690dae350e857d740c000209fff
+    submission_interval: 1
     jobs:
       - id: Crittercism
         plugin: crittercism
