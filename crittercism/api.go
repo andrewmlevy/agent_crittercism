@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/jmoiron/jsonq"
+	"github.com/telemetryapp/gotelemetry"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -121,4 +122,46 @@ func (c *CrittercismAPIClient) FetchGraph(path, name string, duration int) ([]fl
 	}
 
 	return jq.ArrayOfFloats("data", "series", "0", "points")
+}
+
+func (c *CrittercismAPIClient) FetchGraphIntoFlow(path, name string, duration int, f *gotelemetry.Flow) error {
+	if data, found := f.GraphData(); found == true {
+		series, err := c.FetchGraph(path, name, duration)
+
+		if err != nil {
+			return err
+		}
+
+		data.Series[0].Values = series
+
+		return nil
+	}
+
+	return gotelemetry.NewError(400, "Cannot extract value data from flow"+f.Tag)
+}
+
+func (c *CrittercismAPIClient) FetchLastValueOfGraph(path, name string, interval int) (float64, error) {
+	series, err := c.FetchGraph(path, name, interval)
+
+	if err != nil || len(series) == 0 {
+		return -1, err
+	}
+
+	return series[0], err
+}
+
+func (c *CrittercismAPIClient) FetchLastValueOfGraphIntoFlow(path, name string, interval int, f *gotelemetry.Flow) error {
+	if data, found := f.ValueData(); found == true {
+		value, err := c.FetchLastValueOfGraph(path, name, interval)
+
+		if err != nil {
+			return err
+		}
+
+		data.Value = value
+
+		return nil
+	}
+
+	return gotelemetry.NewError(400, "Cannot extract value data from flow"+f.Tag)
 }

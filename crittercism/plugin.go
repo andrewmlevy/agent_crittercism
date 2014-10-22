@@ -1,6 +1,7 @@
 package crittercism
 
 import (
+	"github.com/telemetryapp/gotelemetry"
 	"github.com/telemetryapp/gotelemetry_agent/agent/job"
 	"time"
 )
@@ -19,6 +20,22 @@ func CrittercismPluginFactory() job.PluginInstance {
 type CrittercismPlugin struct {
 	*job.PluginHelper
 	api *CrittercismAPIClient
+}
+
+type crittercismPluginClosure struct {
+	closure  job.PluginHelperClosureWithFlow
+	interval int
+	tag      string
+}
+
+func (p *CrittercismPlugin) registerClosures(b *gotelemetry.Board, closures []crittercismPluginClosure) error {
+	for _, closure := range closures {
+		if err := p.PluginHelper.AddTaskWithClosureFromBoardForFlowWithTag(closure.closure, time.Second*time.Duration(closure.interval), b, closure.tag); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (p *CrittercismPlugin) Init(job *job.Job) error {
@@ -43,7 +60,33 @@ func (p *CrittercismPlugin) Init(job *job.Job) error {
 		return err
 	}
 
-	if err = p.PluginHelper.AddTaskWithClosureFromBoardForFlowWithTag(p.DailyActiveUsers, time.Second*1, b, "daily_active_users"); err != nil {
+	// Daily users
+
+	err = p.registerClosures(
+		b,
+		[]crittercismPluginClosure{
+			// Daily users
+
+			crittercismPluginClosure{p.DailyActiveUsers, 1, "daily_active_users"},
+			crittercismPluginClosure{p.DailyUsers, 1, "daily_users"},
+
+			// Monthly users
+
+			crittercismPluginClosure{p.MonthlyActiveUsers, 1, "monthly_active_users"},
+			crittercismPluginClosure{p.MonthlyUsers, 1, "monthly_users"},
+
+			// App loads
+
+			crittercismPluginClosure{p.DailyAppLoads, 1, "daily_app_loads"},
+
+			// App loads
+
+			crittercismPluginClosure{p.DailyAppCrashes, 1, "daily_app_crashes"},
+			crittercismPluginClosure{p.DailyCrashRate, 1, "daily_crash_rate"},
+		},
+	)
+
+	if err != nil {
 		return err
 	}
 
