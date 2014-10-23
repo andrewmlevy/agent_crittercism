@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 )
 
 const crittercismAPIURL = "https://developers.crittercism.com:443/v1.0"
@@ -78,14 +79,35 @@ func NewCrittercismAPIClient(login, password, appId string) (*CrittercismAPIClie
 	}, nil
 }
 
+type CrittercismAPIParams struct {
+	GroupBy  string `json:"groupBy,omitempty"`
+	Graph    string `json:"graph"`
+	Duration int    `json:"duration"`
+	AppID    string `json:"appId"`
+}
+
 // Request will make a request of the Crittercism API
 // This will return a github.com/jmoiron/jsonq JSON query object
-func (c *CrittercismAPIClient) Request(method, path, params string) (jq *jsonq.JsonQuery, err error) {
+func (c *CrittercismAPIClient) Request(method, path string, params *CrittercismAPIParams) (jq *jsonq.JsonQuery, err error) {
 	// Construct REST Request
 	url := fmt.Sprintf("%s/%s", crittercismAPIURL, path)
-	p := []byte(params)
+
+	var buffer *bytes.Buffer
+
+	if params != nil {
+		p, err := json.Marshal(map[string]interface{}{"params": params})
+
+		if err != nil {
+			return nil, err
+		}
+
+		buffer = bytes.NewBuffer(p)
+	} else {
+		buffer = bytes.NewBuffer([]byte{})
+	}
+
 	client := &http.Client{}
-	req, _ := http.NewRequest(method, url, bytes.NewBuffer(p))
+	req, _ := http.NewRequest(method, url, buffer)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -110,12 +132,23 @@ func (c *CrittercismAPIClient) Request(method, path, params string) (jq *jsonq.J
 	}
 }
 
+func (c *CrittercismAPIClient) NewCrittercismAPIParams(groupBy, graph string, duration int) CrittercismAPIParams {
+	return CrittercismAPIParams{
+		GroupBy:  groupBy,
+		Graph:    graph,
+		Duration: duration,
+		AppID:    c.appId,
+	}
+}
+
+func (c *CrittercismAPIClient) FetchGraphRaw(path, name, groupBy string, duration int) (*jsonq.JsonQuery, error) {
+	params := c.NewCrittercismAPIParams(groupBy, name, duration)
+
+	return c.Request("POST", path, &params)
+}
+
 func (c *CrittercismAPIClient) FetchGraph(path, name string, duration int) ([]float64, error) {
-	params := fmt.Sprintf(`{"params":{"graph": "%s", "duration": 86400, "appId": "%s"}}`, name, c.appId)
-
-	// Get the data from Crittercism
-
-	jq, err := c.Request("POST", path, params)
+	jq, err := c.FetchGraphRaw(path, name, "", duration)
 
 	if err != nil {
 		return []float64{}, err
@@ -124,7 +157,7 @@ func (c *CrittercismAPIClient) FetchGraph(path, name string, duration int) ([]fl
 	return jq.ArrayOfFloats("data", "series", "0", "points")
 }
 
-func (c *CrittercismAPIClient) FetchGraphIntoFlow(path, name string, duration int, f *gotelemetry.Flow) error {
+func (c *CrittercismAPIClient) FetchGraphIntoFlow(path, name string, duration int, scale int, f *gotelemetry.Flow) error {
 	if data, found := f.GraphData(); found == true {
 		series, err := c.FetchGraph(path, name, duration)
 
@@ -133,6 +166,7 @@ func (c *CrittercismAPIClient) FetchGraphIntoFlow(path, name string, duration in
 		}
 
 		data.Series[0].Values = series
+		data.StartTime = time.Now().Add(-time.Duration(scale) * time.Second).Unix()
 
 		return nil
 	}

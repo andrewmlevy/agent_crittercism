@@ -52,7 +52,7 @@ func (p *CrittercismPlugin) Init(job *job.Job) error {
 	board := config["board"].(map[interface{}]interface{})
 	boardName := board["name"].(string)
 	boardPrefix := board["prefix"].(string)
-	template := `{"name":"Default","theme":"dark","aspect_ratio":"HDTV","font_family":"normal","font_size":"normal","widget_background":"","widget_margins":3,"widget_padding":8,"widgets":[{"flow":{"tag":"box_1","data":{}},"variant":"box","column":8,"row":4,"width":24,"height":4,"in_board_index":0,"background":"default"},{"flow":{"tag":"box_2","data":{}},"variant":"box","column":8,"row":8,"width":24,"height":4,"in_board_index":1,"background":"default"},{"flow":{"tag":"box_3","data":{}},"variant":"box","column":0,"row":4,"width":8,"height":16,"in_board_index":2,"background":"default"},{"flow":{"tag":"image_1","data":{"mode":"fit","url":"https://s3.amazonaws.com/telemetrydemos/images/Logos/crittercism_crop.png"}},"variant":"image","column":0,"row":0,"width":32,"height":4,"in_board_index":3,"background":"none"},{"flow":{"tag":"app_store_ratings","data":{"cells":[[{"icon":"fa-android"},{"alignment":"left","value":4.5}],[{"icon":"fa-apple"},{"alignment":"left","value":4.3}]],"title":"App Store Ratings"}},"variant":"table","column":16,"row":12,"width":8,"height":8,"in_board_index":4,"background":"default"},{"flow":{"tag":"service_monitoring_error_rate","data":{"bars":[{"color":"#267288","label":"New Bar","value":100}],"title":"App Service Error Rates"}},"variant":"barchart","column":8,"row":12,"width":8,"height":8,"in_board_index":5,"background":"default"},{"flow":{"tag":"daily_app_crashes","data":{"icon":"fa-bug","label":"Crashes","value":124}},"variant":"value","column":0,"row":4,"width":8,"height":4,"in_board_index":106,"background":"none"},{"flow":{"tag":"barchart_1","data":{"bars":[{"color":"#267288","label":"New Bar","value":100}]}},"variant":"barchart","column":0,"row":12,"width":8,"height":8,"in_board_index":107,"background":"none"},{"flow":{"tag":"daily_crash_rate","data":{"color":"rgb(246, 120, 0)","label":"Crash Percent","value":1.2,"value_type":"percent"}},"variant":"value","column":0,"row":8,"width":8,"height":4,"in_board_index":108,"background":"none"},{"flow":{"tag":"monthly_active_users","data":{"renderer":"line","series":[{"values":[35,62,85,50,93,47,97,37,98,83]}],"title":"Monthly Active Users"}},"variant":"graph","column":16,"row":4,"width":16,"height":4,"in_board_index":109,"background":"none"},{"flow":{"tag":"daily_app_loads","data":{"label":"App Loads","value":23000}},"variant":"value","column":8,"row":8,"width":4,"height":4,"in_board_index":110,"background":"none"},{"flow":{"tag":"monthly_users","data":{"label":"Monthly Users","value":18900}},"variant":"value","column":8,"row":4,"width":8,"height":4,"in_board_index":111,"background":"none"},{"flow":{"tag":"daily_users","data":{"label":"Daily Users","value":4545}},"variant":"value","column":12,"row":8,"width":4,"height":4,"in_board_index":112,"background":"none"},{"flow":{"tag":"daily_active_users","data":{"renderer":"line","series":[{"values":[22,16,79,26,7,6,40,50,84,46]}],"title":"Daily Active Users"}},"variant":"graph","column":16,"row":8,"width":16,"height":4,"in_board_index":113,"background":"none"},{"flow":{"tag":"daily_app_loads_by_device","data":{"bars":[{"color":"#267288","label":"New Bar","value":100}],"title":"App Loads By Device"}},"variant":"barchart","column":24,"row":12,"width":8,"height":8,"in_board_index":114,"background":"default"}]}`
+	template := `{"name":"Crittercism","theme":"dark","aspect_ratio":"HDTV","font_family":"normal","font_size":"normal","widget_background":"","widget_margins":3,"widget_padding":8,"widgets":[{"flow":{"tag":"app_error_rates","data":{"bars":[{"color":"#267288","label":"New Bar","value":100}],"title":"App Service Error Rates"}},"variant":"barchart","column":24,"row":12,"width":8,"height":8,"in_board_index":0,"background":"default"},{"flow":{"tag":"crittercism_logo","data":{"mode":"fit","url":"https://s3.amazonaws.com/telemetrydemos/images/Logos/crittercism_crop.png"}},"variant":"image","column":0,"row":0,"width":32,"height":3,"in_board_index":1,"background":"none"},{"flow":{"tag":"crashes","data":{}},"variant":"box","column":0,"row":3,"width":8,"height":17,"in_board_index":2,"background":"default"},{"flow":{"tag":"users","data":{}},"variant":"box","column":8,"row":3,"width":16,"height":11,"in_board_index":3,"background":"default"},{"flow":{"tag":"app_store_ratings","data":{"icons":[{"color":"rgb(212, 212, 212)","label":"4.2","type":"fa-android"},{"color":"rgb(212, 212, 212)","label":"4.5","type":"fa-apple"}],"title":"App Store Ratings"}},"variant":"icon","column":8,"row":14,"width":16,"height":6,"in_board_index":4,"background":"default"},{"flow":{"tag":"crash_count","data":{"icon":"fa-bomb","label":"Total Crashes","value":"124"}},"variant":"value","column":0,"row":17,"width":8,"height":3,"in_board_index":105,"background":"none"},{"flow":{"tag":"crash_by_os","data":{"bars":[{"color":"#267288","label":"New Bar","value":100}]}},"variant":"barchart","column":0,"row":7,"width":8,"height":10,"in_board_index":106,"background":"none"},{"flow":{"tag":"user_counts","data":{"values":[{"icon":"fa-download","label":"Loads","value":100},{"icon":"fa-group","label":"Daily","value":100},{"icon":"fa-group","label":"Monthly","value":100}]}},"variant":"multivalue","column":8,"row":3,"width":16,"height":4,"in_board_index":107,"background":"none"},{"flow":{"tag":"daily_active_users","data":{"renderer":"line","series":[{"values":[22,16,79,26,7,6,40,50,84,46]}],"title":"Daily Active Users"}},"variant":"graph","column":8,"row":7,"width":16,"height":7,"in_board_index":108,"background":"none"},{"flow":{"tag":"app_loads_by_device","data":{"bars":[{"color":"#267288","label":"New Bar","value":100}],"title":"App Loads By Device"}},"variant":"barchart","column":24,"row":3,"width":8,"height":9,"in_board_index":109,"background":"default"},{"flow":{"tag":"crash_rate","data":{"color":"rgb(246, 120, 0)","icon":"fa-bomb","label":"Crash Rate","value":"1.2","value_type":"percent"}},"variant":"value","column":0,"row":4,"width":8,"height":3,"in_board_index":110,"background":"none"}]}`
 
 	b, err := job.GetOrCreateBoard(boardName, boardPrefix, template)
 
@@ -62,27 +62,36 @@ func (p *CrittercismPlugin) Init(job *job.Job) error {
 
 	// Daily users
 
+	const refreshInterval = 60
+
 	err = p.registerClosures(
 		b,
 		[]crittercismPluginClosure{
-			// Daily users
+			// Users and loads
 
-			crittercismPluginClosure{p.DailyActiveUsers, 1, "daily_active_users"},
-			crittercismPluginClosure{p.DailyUsers, 1, "daily_users"},
+			crittercismPluginClosure{p.DailyActiveUsers, refreshInterval, "daily_active_users"},
+			crittercismPluginClosure{p.DailyMonthlyLoadsUsers, refreshInterval, "user_counts"},
 
-			// Monthly users
+			// Crashes
 
-			crittercismPluginClosure{p.MonthlyActiveUsers, 1, "monthly_active_users"},
-			crittercismPluginClosure{p.MonthlyUsers, 1, "monthly_users"},
+			crittercismPluginClosure{p.DailyAppCrashes, 1, "crash_count"},
+			crittercismPluginClosure{p.DailyCrashRate, 1, "crash_rate"},
 
-			// App loads
+			// App loads by device
 
-			crittercismPluginClosure{p.DailyAppLoads, 1, "daily_app_loads"},
+			crittercismPluginClosure{p.AppLoadsByDevice, refreshInterval, "app_loads_by_device"},
 
-			// App loads
+			// App service error rates
 
-			crittercismPluginClosure{p.DailyAppCrashes, 1, "daily_app_crashes"},
-			crittercismPluginClosure{p.DailyCrashRate, 1, "daily_crash_rate"},
+			crittercismPluginClosure{p.AppServiceErrorRates, refreshInterval, "app_error_rates"},
+
+			// Crashes by OS
+
+			crittercismPluginClosure{p.CrashesByOS, refreshInterval, "crash_by_os"},
+
+			// Ratings
+
+			crittercismPluginClosure{p.AppStoreRatings, refreshInterval, "app_store_ratings"},
 		},
 	)
 
