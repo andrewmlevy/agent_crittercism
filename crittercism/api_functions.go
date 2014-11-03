@@ -3,7 +3,7 @@ package crittercism
 import (
 	"github.com/telemetryapp/gotelemetry"
 	"github.com/telemetryapp/gotelemetry_agent/agent/job"
-	"strings"
+	"time"
 )
 
 func (p *CrittercismPlugin) PostGraph(job *job.Job, path, name string, interval int, scale int, f *gotelemetry.Flow) {
@@ -32,8 +32,20 @@ func (p *CrittercismPlugin) PostLastValueOfGraph(job *job.Job, path, name string
 
 // DAU/MAU/Loads
 
-func (p *CrittercismPlugin) DailyActiveUsers(job *job.Job, f *gotelemetry.Flow) {
+func (p *CrittercismPlugin) DailyActiveUsersGraph(job *job.Job, f *gotelemetry.Flow) {
 	p.PostGraph(job, "errorMonitoring/graph", "dau", 86400, 86400*30, f)
+}
+
+func (p *CrittercismPlugin) DailyActiveUsersValue(job *job.Job, f *gotelemetry.Flow) {
+	p.PostLastValueOfGraph(job, "errorMonitoring/graph", "dau", 1440, f)
+}
+
+func (p *CrittercismPlugin) MonthlyActiveUsersValue(job *job.Job, f *gotelemetry.Flow) {
+	p.PostLastValueOfGraph(job, "errorMonitoring/graph", "mau", 86400, f)
+}
+
+func (p *CrittercismPlugin) DailyAppLoadsValue(job *job.Job, f *gotelemetry.Flow) {
+	p.PostLastValueOfGraph(job, "errorMonitoring/graph", "appLoads", 1440, f)
 }
 
 func (p *CrittercismPlugin) DailyMonthlyLoadsUsers(job *job.Job, f *gotelemetry.Flow) {
@@ -81,6 +93,56 @@ func (p *CrittercismPlugin) DailyAppCrashes(job *job.Job, f *gotelemetry.Flow) {
 
 func (p *CrittercismPlugin) DailyCrashRate(job *job.Job, f *gotelemetry.Flow) {
 	p.PostLastValueOfGraph(job, "errorMonitoring/graph", "crashPercent", 1440, f)
+}
+
+func (p *CrittercismPlugin) DailyMostFrequentCrashes(job *job.Job, f *gotelemetry.Flow) {
+	data, found := f.TableData()
+
+	if !found {
+		job.ReportError(gotelemetry.NewError(400, "Cannot extract table data from flow"+f.Tag))
+	}
+
+	crashes, err := p.api.FetchCrashStatus()
+
+	if err != nil {
+		job.ReportError(err)
+		return
+	}
+
+	cells := [][]gotelemetry.TableCell{}
+
+	for _, crash := range crashes {
+		name := ""
+
+		if crash.DisplayReason != nil {
+			name = *crash.DisplayReason
+		} else if crash.Name != nil {
+			name = *crash.Name
+		} else {
+			name = "N/A (" + crash.Reason + ")"
+		}
+
+		nameLength := len(name)
+
+		if nameLength > 18 {
+			nameLength = 18
+		}
+
+		name = name[:nameLength]
+
+		cells = append(
+			cells,
+			[]gotelemetry.TableCell{
+				gotelemetry.TableCell{Value: name},
+				gotelemetry.TableCell{Value: crash.SessionCount},
+			},
+		)
+	}
+
+	data.Cells = cells
+
+	job.PostFlowUpdate(f)
+	job.Logf("Updated flow %s", f.Tag)
 }
 
 // App Service Error Rates
@@ -170,44 +232,61 @@ func (p *CrittercismPlugin) AppStoreRatings(job *job.Job, f *gotelemetry.Flow) {
 		ratings[t] += rating
 	}
 
-	icons := []gotelemetry.IconIcon{}
+	data, found := f.ValueData()
 
-	for os, count := range counts {
-		if count > 0 {
-			rating := int(ratings[os])
-
-			icon := gotelemetry.IconIcon{
-				Label: strings.Repeat("★", rating) + strings.Repeat("☆", 5-rating),
-				Color: "rgb(212, 212, 212)",
-			}
-
-			switch os {
-			case "ios":
-				icon.Type = "fa-apple"
-
-			case "android":
-				icon.Type = "fa-android"
-
-			case "wp":
-				icon.Type = "fa-windows"
-
-			case "html5":
-				icon.Type = "fa-html5"
-			}
-
-			icons = append(icons, icon)
-		}
-	}
-
-	data, success := f.IconData()
-
-	if !success {
-		job.ReportError(gotelemetry.NewError(400, "Cannot extract icon data from flow"+f.Tag))
+	if !found {
+		job.ReportError(gotelemetry.NewError(400, "Cannot extract value data from flow"+f.Tag))
 		return
 	}
 
-	data.Icons = icons
+	for os, count := range counts {
+		data.Value = ratings[os] / float64(count)
+
+		switch os {
+		case "ios":
+			data.Icon = "fa-apple"
+
+		case "android":
+			data.Icon = "fa-android"
+
+		case "wp":
+			data.Icon = "fa-windows"
+
+		case "html5":
+			data.Icon = "fa-html5"
+		}
+
+		break
+	}
 
 	job.PostFlowUpdate(f)
 	job.Logf("Updated flow %s", f.Tag)
+}
+
+func (p *CrittercismPlugin) SetAppName(job *job.Job, f *gotelemetry.Flow) {
+	data, found := f.TextData()
+
+	if !found {
+		job.ReportError(gotelemetry.NewError(400, "Cannot extract text data from flow"+f.Tag))
+		return
+	}
+
+	data.Text = p.appName
+
+	job.PostFlowUpdate(f)
+	job.Logf("Set app name to flow %s", f.Tag)
+}
+
+func (p *CrittercismPlugin) SetDate(job *job.Job, f *gotelemetry.Flow) {
+	data, found := f.TextData()
+
+	if !found {
+		job.ReportError(gotelemetry.NewError(400, "Cannot extract text data from flow"+f.Tag))
+		return
+	}
+
+	data.Text = time.Now().Format("Monday, January 2")
+
+	job.PostFlowUpdate(f)
+	job.Logf("Set app name to flow %s", f.Tag)
 }

@@ -14,15 +14,10 @@ import (
 
 const crittercismAPIURL = "https://developers.crittercism.com:443/v1.0"
 
-var accessToken string = "cg299DBJDbZfLJq621uFewRlzvwDjKZM"
-var refreshToken string = ""
-var accessTokenExpires int
-
 type CrittercismAPIClient struct {
-	accessToken    string
-	refreshToken   string
-	expirationDate int
-	appId          string
+	accessToken  string
+	refreshToken string
+	appId        string
 }
 
 // getCrittercismOAuthToken fetches a new OAuth Token from the Crittercism API given a username and password
@@ -61,21 +56,20 @@ func getCrittercismOAuthToken(login, password string) (token string, expires int
 	}
 }
 
-func NewCrittercismAPIClient(login, password, appId string) (*CrittercismAPIClient, error) {
-	var err error
+func NewCrittercismAPIClient(accessToken, appId string) (*CrittercismAPIClient, error) {
+	// var err error
 
-	if accessToken == "" {
-		accessToken, accessTokenExpires, err = getCrittercismOAuthToken(login, password)
+	// if accessToken == "" {
+	// 	accessToken, accessTokenExpires, err = getCrittercismOAuthToken(login, password)
 
-		if err != nil {
-			return nil, err
-		}
-	}
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
 	return &CrittercismAPIClient{
-		accessToken:    accessToken,
-		expirationDate: accessTokenExpires,
-		appId:          appId,
+		accessToken: accessToken,
+		appId:       appId,
 	}, nil
 }
 
@@ -88,7 +82,10 @@ type CrittercismAPIParams struct {
 
 // Request will make a request of the Crittercism API
 // This will return a github.com/jmoiron/jsonq JSON query object
-func (c *CrittercismAPIClient) Request(method, path string, params *CrittercismAPIParams) (jq *jsonq.JsonQuery, err error) {
+
+type CrittercismAPIClientResponseHandler func(res *http.Response, err error)
+
+func (c *CrittercismAPIClient) RawRequest(method, path string, params *CrittercismAPIParams, handler CrittercismAPIClientResponseHandler) {
 	// Construct REST Request
 	url := fmt.Sprintf("%s/%s", crittercismAPIURL, path)
 
@@ -98,7 +95,8 @@ func (c *CrittercismAPIClient) Request(method, path string, params *CrittercismA
 		p, err := json.Marshal(map[string]interface{}{"params": params})
 
 		if err != nil {
-			return nil, err
+			handler(nil, err)
+			return
 		}
 
 		buffer = bytes.NewBuffer(p)
@@ -108,28 +106,41 @@ func (c *CrittercismAPIClient) Request(method, path string, params *CrittercismA
 
 	client := &http.Client{}
 	req, _ := http.NewRequest(method, url, buffer)
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.accessToken))
 	req.Header.Set("Content-Type", "application/json")
 
 	// Make Request
-	if resp, err := client.Do(req); err == nil {
-		defer resp.Body.Close()
+	resp, err := client.Do(req)
 
-		// Parse Body
-		if body, err := ioutil.ReadAll(resp.Body); err == nil {
-			data := map[string]interface{}{}
-			dec := json.NewDecoder(strings.NewReader(string(body)))
-			dec.Decode(&data)
-			jq = jsonq.NewQuery(data)
-			return jq, nil
+	handler(resp, err)
+}
 
-		} else {
-			return nil, err // Parse Error
-		}
+func (c *CrittercismAPIClient) Request(method, path string, params *CrittercismAPIParams) (jq *jsonq.JsonQuery, outErr error) {
+	c.RawRequest(
+		method,
+		path,
+		params,
+		func(resp *http.Response, err error) {
+			if resp != nil && resp.Body != nil {
+				defer resp.Body.Close()
+			}
 
-	} else {
-		return nil, err // Request Error
-	}
+			if err != nil {
+				outErr = err
+				return
+			}
+
+			// Parse Body
+			if body, outErr := ioutil.ReadAll(resp.Body); outErr == nil {
+				data := map[string]interface{}{}
+				dec := json.NewDecoder(strings.NewReader(string(body)))
+				dec.Decode(&data)
+				jq = jsonq.NewQuery(data)
+			}
+		},
+	)
+
+	return jq, outErr
 }
 
 func (c *CrittercismAPIClient) NewCrittercismAPIParams(groupBy, graph string, duration int) CrittercismAPIParams {
@@ -139,6 +150,44 @@ func (c *CrittercismAPIClient) NewCrittercismAPIParams(groupBy, graph string, du
 		Duration: duration,
 		AppID:    c.appId,
 	}
+}
+
+type CrashStatusDetail struct {
+	Reason             string  `json:"reason"`
+	DisplayReason      *string `json:"displayReason"`
+	Name               *string `json:"name"`
+	UniqueSessionCount int     `json:"uniqueSessionCount"`
+	SessionCount       int     `json:"sessionCount"`
+}
+
+func (c *CrittercismAPIClient) FetchCrashStatus() (result []CrashStatusDetail, outErr error) {
+	result = []CrashStatusDetail{}
+
+	c.RawRequest(
+		"GET",
+		"app/"+c.appId+"/crash/summaries?status=unresolved&sortBy=sessionCount&sortOrder=DESC",
+		nil,
+		func(resp *http.Response, err error) {
+			if resp != nil && resp.Body != nil {
+				defer resp.Body.Close()
+			}
+
+			if err != nil {
+				outErr = err
+				return
+			}
+
+			data, outErr := ioutil.ReadAll(resp.Body)
+
+			if outErr != nil {
+				return
+			}
+
+			outErr = json.Unmarshal(data, &result)
+		},
+	)
+
+	return result, outErr
 }
 
 func (c *CrittercismAPIClient) FetchGraphRaw(path, name, groupBy string, duration int) (*jsonq.JsonQuery, error) {
