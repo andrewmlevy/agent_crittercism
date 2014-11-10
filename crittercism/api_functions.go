@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+const tableDataLength = 80
+
 func (p *CrittercismPlugin) PostGraph(job *job.Job, path, name string, interval int, scale int, f *gotelemetry.Flow) {
 	err := p.api.FetchGraphIntoFlow(path, name, interval, scale, f)
 
@@ -109,12 +111,18 @@ func (p *CrittercismPlugin) DailyMostFrequentCrashes(job *job.Job, f *gotelemetr
 		return
 	}
 
+	crashes = crashes.Aggregate()
+
 	cells := [][]gotelemetry.TableCell{}
+
+	var count = 8
 
 	for _, crash := range crashes {
 		name := ""
 
-		if crash.DisplayReason != nil {
+		if crash.Reason != "" {
+			name = crash.Reason
+		} else if crash.DisplayReason != nil {
 			name = *crash.DisplayReason
 		} else if crash.Name != nil {
 			name = *crash.Name
@@ -122,13 +130,9 @@ func (p *CrittercismPlugin) DailyMostFrequentCrashes(job *job.Job, f *gotelemetr
 			name = "N/A (" + crash.Reason + ")"
 		}
 
-		nameLength := len(name)
-
-		if nameLength > 18 {
-			nameLength = 18
+		if len(name) > tableDataLength {
+			name = name[:tableDataLength-1]
 		}
-
-		name = name[:nameLength]
 
 		cells = append(
 			cells,
@@ -137,6 +141,24 @@ func (p *CrittercismPlugin) DailyMostFrequentCrashes(job *job.Job, f *gotelemetr
 				gotelemetry.TableCell{Value: crash.SessionCount},
 			},
 		)
+
+		count -= 1
+
+		if count == 0 {
+			break
+		}
+	}
+
+	for count > 0 {
+		cells = append(
+			cells,
+			[]gotelemetry.TableCell{
+				gotelemetry.TableCell{Value: ""},
+				gotelemetry.TableCell{Value: ""},
+			},
+		)
+
+		count -= 1
 	}
 
 	data.Cells = cells
@@ -165,6 +187,8 @@ func (p *CrittercismPlugin) PostGraphToBarchart(job *job.Job, path, name, groupB
 
 		bars := []gotelemetry.BarchartBar{}
 
+		count := 10
+
 		for _, slice := range slices {
 			bar := gotelemetry.BarchartBar{}
 
@@ -173,6 +197,12 @@ func (p *CrittercismPlugin) PostGraphToBarchart(job *job.Job, path, name, groupB
 			bar.Value = slice["value"].(float64)
 
 			bars = append(bars, bar)
+
+			count -= 1
+
+			if count == 0 {
+				break
+			}
 		}
 
 		data.Bars = bars
@@ -239,24 +269,23 @@ func (p *CrittercismPlugin) AppStoreRatings(job *job.Job, f *gotelemetry.Flow) {
 		return
 	}
 
-	for os, count := range counts {
-		data.Value = ratings[os] / float64(count)
+	finalRating := ratings[p.ratingKey]
+	finalCount := float64(counts[p.ratingKey])
 
-		switch os {
-		case "ios":
-			data.Icon = "fa-apple"
+	data.Value = finalRating / finalCount
 
-		case "android":
-			data.Icon = "fa-android"
+	switch p.ratingKey {
+	case "ios":
+		data.Icon = "fa-apple"
 
-		case "wp":
-			data.Icon = "fa-windows"
+	case "android":
+		data.Icon = "fa-android"
 
-		case "html5":
-			data.Icon = "fa-html5"
-		}
+	case "wp":
+		data.Icon = "fa-windows"
 
-		break
+	case "html5":
+		data.Icon = "fa-html5"
 	}
 
 	job.PostFlowUpdate(f)

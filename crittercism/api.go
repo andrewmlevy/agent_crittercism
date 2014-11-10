@@ -152,7 +152,7 @@ func (c *CrittercismAPIClient) NewCrittercismAPIParams(groupBy, graph string, du
 	}
 }
 
-type CrashStatusDetail struct {
+type CrittercismCrashStatusDetail struct {
 	Reason             string  `json:"reason"`
 	DisplayReason      *string `json:"displayReason"`
 	Name               *string `json:"name"`
@@ -160,8 +160,42 @@ type CrashStatusDetail struct {
 	SessionCount       int     `json:"sessionCount"`
 }
 
-func (c *CrittercismAPIClient) FetchCrashStatus() (result []CrashStatusDetail, outErr error) {
-	result = []CrashStatusDetail{}
+type CrittercismCrashSlice []CrittercismCrashStatusDetail
+
+func (c CrittercismCrashSlice) Aggregate() CrittercismCrashSlice {
+	result := CrittercismCrashSlice{}
+
+	for _, crash := range c {
+		found := false
+
+		for _, newCrash := range result {
+			if newCrash.Reason == crash.Reason {
+				newCrash.SessionCount += crash.SessionCount
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			result = append(
+				result,
+				CrittercismCrashStatusDetail{
+					Reason:       crash.Reason,
+					SessionCount: crash.SessionCount,
+				},
+			)
+		}
+	}
+
+	return result
+}
+
+func (c CrittercismCrashSlice) Len() int           { return len(c) }
+func (c CrittercismCrashSlice) Less(i, j int) bool { return c[i].Reason < c[j].Reason }
+func (c CrittercismCrashSlice) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
+
+func (c *CrittercismAPIClient) FetchCrashStatus() (result CrittercismCrashSlice, outErr error) {
+	result = CrittercismCrashSlice{}
 
 	c.RawRequest(
 		"GET",
@@ -212,6 +246,11 @@ func (c *CrittercismAPIClient) FetchGraphIntoFlow(path, name string, duration in
 
 		if err != nil {
 			return err
+		}
+
+		// Eliminate last value
+		if len(series) > 1 {
+			series = series[:len(series)-1]
 		}
 
 		data.Series[0].Values = series

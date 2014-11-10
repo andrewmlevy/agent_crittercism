@@ -1,14 +1,14 @@
 accounts: 
-  # - api_key: 086ab610a83b941968caea0e6cefd04e
-  - api_key: f67f1690dae350e857d740c000209fff
+  - api_key: <your telemetry api key here>
     submission_interval: 1
     jobs:
-      - id: Crittercism
+      - id: <job id>
         plugin: crittercism
         config:
-          appId: "519d53101386202089000007"
-          username: "username"
-          password: "password"
+          apiKey: <crittercism api key>
+          appId: <crittercism app id>
+          appName: <app name>
+          ratingKey: <rating key>
           board:
-            name: Crittercism
-            prefix: crittercism
+            name: <unique board name>
+            prefix: <unique board prefix>
