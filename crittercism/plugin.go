@@ -3,6 +3,7 @@ package crittercism
 import (
 	"github.com/telemetryapp/gotelemetry"
 	"github.com/telemetryapp/gotelemetry_agent/agent/job"
+	"math/rand"
 	"time"
 )
 
@@ -48,6 +49,8 @@ func (p *CrittercismPlugin) Init(job *job.Job) error {
 	var err error
 
 	config := job.Config()
+
+	time.Sleep(time.Duration(rand.Float64()*10.0) * time.Second)
 
 	p.api, err = NewCrittercismAPIClient(config["apiKey"].(string), config["appId"].(string))
 
