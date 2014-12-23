@@ -269,12 +269,44 @@ func (c *CrittercismAPIClient) FetchLastValueOfGraph(path, name string, interval
 		return -1, err
 	}
 
-	return series[0], err
+	return series[len(series)-1], err
+}
+
+func (c *CrittercismAPIClient) FetchSumOfGraph(path, name string, interval int) (float64, error) {
+	series, err := c.FetchGraph(path, name, interval)
+
+	if err != nil || len(series) == 0 {
+		return -1, err
+	}
+
+	sum := 0.0
+
+	for _, value := range series {
+		sum += value
+	}
+
+	return sum, err
 }
 
 func (c *CrittercismAPIClient) FetchLastValueOfGraphIntoFlow(path, name string, interval int, f *gotelemetry.Flow) error {
 	if data, found := f.ValueData(); found == true {
 		value, err := c.FetchLastValueOfGraph(path, name, interval)
+
+		if err != nil {
+			return err
+		}
+
+		data.Value = value
+
+		return nil
+	}
+
+	return gotelemetry.NewError(400, "Cannot extract value data from flow"+f.Tag)
+}
+
+func (c *CrittercismAPIClient) FetchSumOfGraphIntoFlow(path, name string, interval int, f *gotelemetry.Flow) error {
+	if data, found := f.ValueData(); found == true {
+		value, err := c.FetchSumOfGraph(path, name, interval)
 
 		if err != nil {
 			return err

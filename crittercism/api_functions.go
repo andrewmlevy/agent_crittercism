@@ -32,6 +32,18 @@ func (p *CrittercismPlugin) PostLastValueOfGraph(job *job.Job, path, name string
 	job.Logf("Updated flow %s", f.Tag)
 }
 
+func (p *CrittercismPlugin) PostSumOfGraph(job *job.Job, path, name string, interval int, f *gotelemetry.Flow) {
+	err := p.api.FetchSumOfGraphIntoFlow(path, name, interval, f)
+
+	if err != nil {
+		job.ReportError(err)
+		return
+	}
+
+	job.PostFlowUpdate(f)
+	job.Logf("Updated flow %s", f.Tag)
+}
+
 // DAU/MAU/Loads
 
 func (p *CrittercismPlugin) DailyActiveUsersGraph(job *job.Job, f *gotelemetry.Flow) {
