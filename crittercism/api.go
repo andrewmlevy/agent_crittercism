@@ -7,7 +7,6 @@ import (
 	"github.com/jmoiron/jsonq"
 	"github.com/telemetryapp/gotelemetry"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -89,8 +88,6 @@ type CrittercismAPIClientResponseHandler func(res *http.Response, err error)
 func (c *CrittercismAPIClient) RawRequest(method, path string, params *CrittercismAPIParams, handler CrittercismAPIClientResponseHandler) {
 	// Construct REST Request
 	url := fmt.Sprintf("%s/%s", crittercismAPIURL, path)
-
-	log.Printf("REQUESTING %s, %s", method, url)
 
 	var buffer *bytes.Buffer
 
