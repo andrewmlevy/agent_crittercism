@@ -50,6 +50,8 @@ func (p *CrittercismPlugin) Init(job *job.Job) error {
 
 	time.Sleep(time.Duration(rand.Float64()*10.0) * time.Second)
 
+	p.appId = config["appId"].(string)
+
 	p.api, err = NewCrittercismAPIClient(config["apiKey"].(string), config["appId"].(string))
 
 	if err != nil {
