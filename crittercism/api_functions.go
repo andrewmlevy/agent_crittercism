@@ -261,19 +261,6 @@ func (p *CrittercismPlugin) AppStoreRatings(job *job.Job, f *gotelemetry.Flow) {
 		return
 	}
 
-	ratings := map[string]float64{}
-	counts := map[string]int{}
-
-	for _, appObj := range source {
-		app := appObj.(map[string]interface{})
-
-		t := app["appType"].(string)
-		rating := app["rating"].(float64)
-
-		counts[t] += 1
-		ratings[t] += rating
-	}
-
 	data, found := f.ValueData()
 
 	if !found {
@@ -281,23 +268,24 @@ func (p *CrittercismPlugin) AppStoreRatings(job *job.Job, f *gotelemetry.Flow) {
 		return
 	}
 
-	finalRating := ratings[p.ratingKey]
-	finalCount := float64(counts[p.ratingKey])
+	if appObj, ok := source[p.appId]; ok {
+		app := appObj.(map[string]interface{})
 
-	data.Value = finalRating / finalCount
+		data.Value = app["rating"].(float64)
 
-	switch p.ratingKey {
-	case "ios":
-		data.Icon = "fa-apple"
+		switch p.ratingKey {
+		case "ios":
+			data.Icon = "fa-apple"
 
-	case "android":
-		data.Icon = "fa-android"
+		case "android":
+			data.Icon = "fa-android"
 
-	case "wp":
-		data.Icon = "fa-windows"
+		case "wp":
+			data.Icon = "fa-windows"
 
-	case "html5":
-		data.Icon = "fa-html5"
+		case "html5":
+			data.Icon = "fa-html5"
+		}
 	}
 
 	job.PostFlowUpdate(f)

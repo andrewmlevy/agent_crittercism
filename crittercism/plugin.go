@@ -13,11 +13,8 @@ func init() {
 
 func CrittercismPluginFactory() job.PluginInstance {
 	return &CrittercismPlugin{
-		job.NewPluginHelper(),
-		nil,
-		"",
-		map[string]*gotelemetry.Flow{},
-		"",
+		PluginHelper: job.NewPluginHelper(),
+		flows:        map[string]*gotelemetry.Flow{},
 	}
 }
 
@@ -25,6 +22,7 @@ type CrittercismPlugin struct {
 	*job.PluginHelper
 	api       *CrittercismAPIClient
 	appName   string
+	appId     string
 	flows     map[string]*gotelemetry.Flow
 	ratingKey string
 }
