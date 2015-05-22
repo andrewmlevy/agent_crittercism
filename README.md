@@ -28,24 +28,23 @@ The Agent takes one parameter, `-config`, which points to the location of a conf
 The configuration file is written in [YAML](http://www.yaml.org) and is organized as an array of Telemetry accounts, each containing one or more jobs, each of which identifies a board to be updated:
 
 ```yaml
-accounts: 
-  - api_key: <your telemetry api key here>
-    submission_interval: 1
-    jobs:
-      - id: <job id>
-        plugin: crittercism
-        config:
-        	refresh: 60
-          apiKey: <crittercism api key>
-          appId: <crittercism app id>
-          appName: <app name>
-          ratingKey: <rating key>
-          board:
-            name: <unique board name>
-            prefix: <unique board prefix>
+server:
+    api_token: <your telemetry api key>
+    submission_interval: 1s
+jobs:
+  - id: <job id>
+    plugin: crittercism
+    config:
+      apiKey: <crittercism api key>
+      appId: <crittercism app id>
+      appName: <app name>
+      ratingKey: <rating key>
+      board:
+        name: <unique board name>
+        prefix: <unique board prefix>
 ```
 
-The top-level `accounts` array contains one entry for each Telemetry account which must receive data. In turn, each account contains a `jobs` array that describes an arbitrary number of boards that should be created and updated for that particular account. Each account also contains a `submission_interval` entry, which indicates how often data updates are coealesced and sent to the Telemetry API; it's safe to leave this value to a default of `1` second.
+The `jobs` array describes an arbitrary number of boards that should be created and updated for that particular account.
 
 Jobs possess the following properties:
 
