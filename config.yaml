@@ -1,14 +1,14 @@
-accounts: 
-  - api_key: <your telemetry api key here>
-    submission_interval: 1
-    jobs:
-      - id: <job id>
-        plugin: crittercism
-        config:
-          apiKey: <crittercism api key>
-          appId: <crittercism app id>
-          appName: <app name>
-          ratingKey: <rating key>
-          board:
-            name: <unique board name>
-            prefix: <unique board prefix>
+server:
+    api_token: abc123
+    submission_interval: 20s
+jobs:
+  - id: <job id>
+    plugin: crittercism
+    config:
+      apiKey: <crittercism api key>
+      appId: <crittercism app id>
+      appName: <app name>
+      ratingKey: <rating key>
+      board:
+        name: <unique board name>
+        prefix: <unique board prefix>

@@ -28,11 +28,12 @@ $(BUILD_LIST): %_build: %_fmt
 		./prebuild --release ; \
 	fi
 	@echo "Building Linux AMD64..."
-	@GOOS=linux GOARCH=amd64 $(GOBUILD) -o bin/linux-amd64/$*
+	@GOOS=linux GOARCH=amd64 CGO_ENABLED=1 CC="gcc" $(GOBUILD) -tags release -o bin/linux-amd64/$*
 	@echo "Building Darwin AMD64..."
-	@GOOS=darwin GOARCH=amd64 $(GOBUILD) -o bin/darwin-amd64/$*
-	@echo "Building Windows AMD64..."
-	@GOOS=linux GOARCH=amd64 $(GOBUILD) -o bin/windows-amd64/$*
+	@GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 $(GOBUILD) -tags release -o bin/darwin-amd64/$*
+	@echo "Building Windows 32bit..."
+	@GOARCH=386 CGO_ENABLED=1 GOOS=windows CC="i686-w64-mingw32-gcc -fno-stack-protector -D_FORTIFY_SOURCE=0 -lssp -D_localtime32=localtime" $(GOBUILD)  -tags release -o bin/windows-386/$*
+
 	@if [ -f ./prebuild ]; then \
 		echo "Running prebuild script in release mode..." ; \
 		./prebuild --debug ; \

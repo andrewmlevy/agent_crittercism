@@ -19,7 +19,7 @@ func main() {
 	errorChannel := make(chan error, 0)
 	completionChannel := make(chan bool, 0)
 
-	_, err = job.NewJobManager(config, &errorChannel, &completionChannel)
+	_, err = job.NewJobManager(config, errorChannel, completionChannel)
 
 	if err != nil {
 		panic(err)

@@ -46,7 +46,7 @@ func (p *CrittercismPlugin) registerClosures(b *gotelemetry.Board, closures []cr
 func (p *CrittercismPlugin) Init(job *job.Job) error {
 	var err error
 
-	config := job.Config()
+	config := job.Config()["config"].(map[interface{}]interface{})
 
 	time.Sleep(time.Duration(rand.Float64()*10.0) * time.Second)
 
